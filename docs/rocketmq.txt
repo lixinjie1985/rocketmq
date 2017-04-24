@@ -483,3 +483,37 @@ public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeCo
 主要原因是线下压测时间过短，线上运行一段时间后，cache命中率下降，那么RT就会增加。建议在线下压测时，要测试足够长时间，尽可能模拟线上环境，压测过程中，数据的分布也很重要，数据不同，可能cache的命中率也会完全不同。
 
 
+https://github.com/alibaba/RocketMQ/wiki/core-concept
+Producer
+发送消息到brokers，提供多种发送模式，synchronous，asynchronous和one-way
+Consumer
+从brokers获取消息，提供两种类型的消费者，PullConsumer，主动从brokers拉取消息，一旦拉到消息，应用程序就初始化消费进程。PushConsumer，已在内部封装好了消息拉取，消费进度维护，其它必要的工作，留了一个回调接口给最终用户实现，在消息到来时将会被执行
+Producer Group
+相同角色的生产者被分组到一起，同一组内的生产者实例可以互相替换使用，去提交或回滚别人创建的事务。生产者足够强大，每个进程的每个组只允许有一个生产者实例
+Consumer Group
+相同角色的消费者被分组到一起，从消息消费这方面讲，消费者组很容易实现负载均衡和容错，组内的消费者必须有精确相同的topic订阅
+Topic
+Topic是一个分类，生产者基于它分发消息，消费者基于它拉取消息，Topic和生产者消费者之间有非常松散的关系。一个topic可以有0个到多个生产者，一个生产者可以发送多个不同topic消息，一个topic可以被0个到多个消费者组订阅，一个消费者组可以订阅一个或多个topic（只要组内的消费者订阅一致就行了）
+Message Queue
+topic在内部从逻辑上被划分为一个或多个子topic，把这些子topic叫做message queues，这个概念在实现一些有价值的特性时起了主要作用，例如故障转移，最大并发等
+Message
+message封装了要投递的信息，消息必须指定一个topic，可以理解为要发送的目的地。还有一个可选的tag集合，还可以包含额外的key-value对
+Tag
+tag可以认为是子topic，提供了一个额外的灵活性，具有相同topic不同tag的消息目的不同但又相关联
+Broker
+broker是主角，它接收生产者发过来的消息，存储它们，并准备服务消费者对消息的获取，同样存储和消息消费相关的元数据，包括消费者组，消费进度偏移量，topic/queue信息
+Name Server
+提供路由信息，生产者和消费者通过topic查找broker列表来写入或读取消息
+Message Model
+Clustering（集群消息），Broadcasting（广播消息）
+Message Order
+当DefaultMQPushConsumer使用时，你可以决定是顺序消费消息还是并发消费消息，Orderly，对于每一个message queue，消息的消费顺序和发送顺序一样，如果要求全局的顺序一样，那么一个topic只能有一个message queue，警告，如果指定了顺序消费，消息消费的最大并发数就是消费者组订阅的message queues个数。Concurrently，消息消费的最大并发数只受到消费者客户端指定的线程池的限制
+
+
+
+
+
+
+
+
+
