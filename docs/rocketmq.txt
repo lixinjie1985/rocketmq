@@ -509,6 +509,16 @@ Clustering（集群消息），Broadcasting（广播消息）
 Message Order
 当DefaultMQPushConsumer使用时，你可以决定是顺序消费消息还是并发消费消息，Orderly，对于每一个message queue，消息的消费顺序和发送顺序一样，如果要求全局的顺序一样，那么一个topic只能有一个message queue，警告，如果指定了顺序消费，消息消费的最大并发数就是消费者组订阅的message queues个数。Concurrently，消息消费的最大并发数只受到消费者客户端指定的线程池的限制
 
+http://rocketmq.incubator.apache.org/docs/best-practice-namesvr/
+Best Practice For NameServer
+协调分布式系统的各个组件，管理topic路由信息，粗略地说有两部分组成，broker周期性地更新元数据到nameserver，nameserver服务客户端（生产者和消费者），提供最新的路由信息。在启动broker和客户端前，需要把一个nameserver的地址列表告诉它们，以便它们连接。可以有四种方式，编程方式，在broker的配置文件中指定，namesrvAddr=name-server-ip1:port;name-server-ip2:port，在客户端实例化时指定，DefaultMQProducer producer = new DefaultMQProducer("please_rename_unique_group_name");producer.setNamesrvAddr("name-server1-ip:port;name-server2-ip:port");DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("please_rename_unique_group_name");consumer.setNamesrvAddr("name-server1-ip:port;name-server2-ip:port");Java选项方式，在启动前通过连续Java选项rocketmq.namesrv.addr指定，环境变量方式，定义一个NAMESRV_ADDR环境变量，HTTP端点方式，可以通过一个http地址访问nameserver，默认是http://jmenv.tbsite.net:8080/rocketmq/nsaddr，其中域名部分可以通过java选项rocketmq.namesrv.domain来重写，地址部分可以通过java选项rocketmq.namesrv.domain.subgroup来重写，这种方式更加灵活，可以动态添加或删除nameserver节点，而对broker和客户端没有影响。它们之间的优先级是Programmatic Way > Java Options > Environment Variable > HTTP Endpoint
+
+http://rocketmq.incubator.apache.org/docs/best-practice-consumer/
+Best Practice For Consumer
+不同的消费者组可以独立地消费相同的topic，每个组都有自己的消费偏移量，每个组内的消费者订阅的topic必须完全一样。消息监听器，顺序消费，消费者锁住每个MessageQueue确保一个接一个地消费，会造成性能损失，不建议抛异常，可以返回ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT，并发消费，性能较好，不建议抛异常，可以返回ConsumeConcurrentlyStatus.RECONSUME_LATER。消费状态，对于MessageListenerConcurrently，可以返回RECONSUME_LATER来告知暂时无法消费稍后再试这条消息，可以继续消费其它消息。对于MessageListenerOrderly，比较关注顺序，不能跳过这个消息，可以返回SUSPEND_CURRENT_QUEUE_A_MOMENT来告知暂停一会。监听器不建议被阻塞，最终消费者进程将卡住。线程数，消费者内部使用ThreadPoolExecutor来处理消费，可以通过使用setConsumeThreadMin或setConsumeThreadMax来调整。
+
+
+
 
 
 
