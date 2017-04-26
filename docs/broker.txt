@@ -1,0 +1,69 @@
+brokerClusterName=AdpMqCluster      // broker归属的集群名
+
+brokerName=broker-a  　             // broker的名字
+
+brokerId=0   　　　　　　　　　　　　　// 0 代表master >0 表示slave, 一个master 可以挂多个slave， master 和 slave 通过 brokerName 来配对
+
+namesrvAddr=mqnameserver1:9876;192.168.1.252:9876  //nameserver 对应的IP和端口号
+
+defaultTopicQueueNums=4               //
+
+autoCreateTopicEnable=true            //是否允许broker自动创建Topic
+
+autoCreateSubscriptionGroup=true      //是否允许broker自动创建订阅组
+
+listenPort=10911  //监听的端口号
+
+deleteWhen=04         //删除文件时间点，默认凌晨4点
+
+fileReservedTime=120   //文件保留时间，单位小时
+
+mapedFileSizeCommitLog=1073741824
+
+mapedFileSizeConsumeQueue=50000000
+
+destroyMapedFileIntervalForcibly=120000
+
+redeleteHangedFileInterval=120000
+
+diskMaxUsedSpaceRatio=88
+
+ 
+
+storePathRootDir=/data/rocketmq/store
+
+storePathCommitLog=/data/rocketmq/store/commitlog //commitlog 的存储路径
+
+storePathIndex=/data/rocketmq/store/indexlog  //消息索引的存储路径
+
+abortFile=/data/rocketmq/store/abortlog        //abort文件的储存路径
+
+ 
+
+maxMessageSize=65536                     
+
+ 
+
+flushCommitLogLeastPages=4
+
+flushConsumeQueueLeastPages=2
+
+flushCommitLogThoroughInterval=10000
+
+flushConsumeQueueThoroughInterval=60000
+
+ 
+
+brokerRole=ASYNC_MASTER                 //broker的角色, Master, SLAVE, ASYNC_MASTER, SYNC_MASTER
+
+flushDiskType=ASYNC_FLUSH               //数据写盘方式，异步写盘， SYNC_FLUSH ：同步写盘
+
+ 
+
+checkTransactionMessageEnable=false
+
+ 
+
+sendMessageThreadPoolNums=128          
+
+pullMessageThreadPoolNums=128
