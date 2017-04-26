@@ -1,0 +1,37 @@
+两个虚拟机分别安装JDK并配置环境变量
+
+分别修改两个虚拟机的/etc/hosts文件，使它们互相知道对方，且互相可以ping通
+192.168.95.57  rocketmq-nameserver-1
+192.168.95.57  rocketmq-master-1
+192.168.95.52  rocketmq-nameserver-2
+192.168.95.52  rocketmq-master-2
+
+创建/usr/local/rocketmq/目录，并上传alibaba-rocketmq-3.2.6.tar.gz
+
+tar zxvf alibaba-rocketmq-3.2.6.tar.gz加压
+
+创建目录store，cd store，mkdir commitlog consumequeue index创建三个目录
+
+默认给出了三种集群模式，两主两从且主从异步，两主两从且主从同步，两主无从，这里选择第一种模式
+
+修改主节点和从节点的配置文件，确保从节点端口号不和主节点冲突，具体参见conf目录里的配置文件
+
+修改日志配置文件，指定日志输出的根目录，具体参见conf目录里的xml配置文件
+
+修改JVM启动参数，位置是bin目录下的runbroker.sh和runserver.sh文件，把内存改的小些
+JAVA_OPT="${JAVA_OPT} -server -Xms512m -Xmx512m -Xmn256m -XX:PermSize=128m -XX:MaxPermSize=320m"
+
+在两个虚拟机上分别启动
+启动nameserver，命令是nohup sh mqnamesrv &，查看日志tail -f 100 nohup.out，查看是否成功jps
+
+在一个虚拟机上
+启动broker，命令是nohup sh mqbroker -c ../conf/2m-2s-async/broker-a.properties &，主节点
+启动broker，命令是nohup sh mqbroker -c ../conf/2m-2s-async/broker-a-s.properties &，从节点
+
+在另一个虚拟机上
+启动broker，命令是nohup sh mqbroker -c ../conf/2m-2s-async/broker-b.properties &，主节点
+启动broker，命令是nohup sh mqbroker -c ../conf/2m-2s-async/broker-b-s.properties &，从节点
+
+将rocketmq-console.war解压后，放到tomcat的ROOT里，修改classes目录下的config.properties文件里的rocketmq.namesrv.addr为nameserver地址和端口
+
+启动tomcat后，可以看到集群，broker，各个主节点和从节点
