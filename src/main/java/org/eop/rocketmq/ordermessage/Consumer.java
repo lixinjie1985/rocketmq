@@ -26,6 +26,7 @@ public class Consumer {
 			
 			//每个队列只有一个线程消费，保证消费完上一个才会开始下一个
 			//同一队列内消息不会并发执行，队列间是并发执行的
+			@SuppressWarnings("deprecation")
 			@Override
 			public ConsumeOrderlyStatus consumeMessage(List<MessageExt> msgs, ConsumeOrderlyContext context) {
 				context.setAutoCommit(false);
