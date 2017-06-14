@@ -1,0 +1,6 @@
+MQAdmin接口，用于对MQ的基本管理，包括创建topic，获取偏移量，查询消息等
+MQProducer接口继承MQAdmin，用于发送消息，包括同步，异步，OneWay，事务等发送方式
+ClientConfig类，客户端基本配置，包括namesrv、ip等基本参数
+DefaultMQProducer类继承ClientConfig类并实现MQProducer接口，用来发消息，具体又委托给DefaultMQProducerImpl类来发送
+SendStatus枚举，发送状态，表示broker对发送的消息的处理结果
+SendResult类，发送结果，包括发送状态，消息ID，进入的消息队列，偏移量，事务ID

@@ -1,147 +1,42 @@
-应用场景
-MQ 可应用在多个领域，包括异步通信解耦、企业解决方案、金融支付、电信、电子商务、快递物流、广告营销、社交、即时通信、手游、视频、物联网、车联网等。
-
-MQ 可以应用但不局限于以下业务场景：
-一对多，多对多异步解耦，基于发布订阅模型，对分布式应用进行异步解耦，增加应用的水平扩展能力。
-削峰填谷，大促等流量洪流突然来袭时，MQ 可以缓冲突发流量，避免下游订阅系统因突发流量崩溃。
-日志监控，作为重要日志的监控通信管道，将应用日志监控对系统性能影响降到最低。
-消息推送，为社交应用和物联网应用提供点对点推送，一对多广播式推送的能力。
-金融报文，发送金融报文，实现金融准实时的报文传输，可靠安全。
-电信信令，将电信信令封装成消息，传递到各个控制终端，实现准实时控制和信息传递。
-
-名词解释
-Message Queue
-
-消息队列，阿里云商用的专业消息中间件，是企业级互联网架构的核心产品，提供基于高可用分布式集群技术搭建的消息发布订阅、轨迹查询、资源统计、定时（延时）、监控报警等一系列消息云服务。
-
-Message
-
-消息，消息队列中信息传递的载体。
-
-Message ID
-
-消息的全局唯一标识，由 MQ 系统自动生成，唯一标识某条消息。
-
-Message Key
-
-消息的业务标识，由消息生产者（Producer）设置，唯一标识某个业务逻辑。
-
-Topic
-
-消息主题，一级消息类型，通过 Topic 对消息进行分类。
-
-Tag
-
-消息标签，二级消息类型，用来进一步区分某个 Topic 下的消息分类。
-
-Producer
-
-消息生产者，也称为消息发布者，负责生产并发送消息。
-
-Producer ID
-
-一类 Producer 的标识，这类 Producer 通常生产并发送一类消息，且发送逻辑一致。
-
-Producer 实例
-
-Producer 的一个对象实例，不同的 Producer 实例可以运行在不同进程内或者不同机器上。Producer 实例线程安全，可在同一进程内多线程之间共享。
-
-Consumer
-
-消息消费者，也称为消息订阅者，负责接收并消费消息。
-
-Consumer ID
-
-一类 Consumer 的标识，这类 Consumer 通常接收并消费一类消息，且消费逻辑一致。
-
-Consumer 实例
-
-Consumer 的一个对象实例，不同的 Consumer 实例可以运行在不同进程内或者不同机器上。一个 Consumer 实例内配置线程池消费消息。
-
-集群消费
-
-一个 Consumer ID 所标识的所有 Consumer 平均分摊消费消息。例如某个 Topic 有 9 条消息，一个 Consumer ID 有 3 个 Consumer 实例，那么在集群消费模式下每个实例平均分摊，只消费其中的 3 条消息。
-
-广播消费
-
-一个 Consumer ID 所标识的所有 Consumer 都会各自消费某条消息一次。例如某个 Topic 有 9 条消息，一个 Consumer ID 有 3 个 Consumer 实例，那么在广播消费模式下每个实例都会各自消费 9 条消息。
-
-定时消息
-
-Producer 将消息发送到 MQ 服务端，但并不期望这条消息立马投递，而是推迟到在当前时间点之后的某一个时间投递到 Consumer 进行消费，该消息即定时消息。
-
-延时消息
-
-Producer 将消息发送到 MQ 服务端，但并不期望这条消息立马投递，而是延迟一定时间后才投递到 Consumer 进行消费，该消息即延时消息。
-
-消息堆积
-
-Producer 已经将消息发送到 MQ 服务端，但由于 Consumer 消费能力有限，未能在短时间内将所有消息正确消费掉，此时在 MQ 服务端保存着未被消费的消息，该状态即消息堆积。
-
-消息过滤
-
-订阅者可以根据消息标签（Tag）对消息进行过滤，确保订阅者最终只接收被过滤后的消息类型。消息过滤在 MQ 服务端完成。
-
-消息轨迹
-
-在一条消息从发布者发出到订阅者消费处理过程中，由各个相关节点的时间、地点等数据汇聚而成的完整链路信息。通过消息轨迹，用户能清晰定位消息从发布者发出，经由 MQ 服务端，投递给消息订阅者的完整链路，方便定位排查问题。
-
-重置消费位点
-
-以时间轴为坐标，在消息持久化存储的时间范围内（默认3天），重新设置消息订阅者对其订阅 Topic 的消费进度，设置完成后订阅者将接收设定时间点之后由消息发布者发送到 MQ 服务端的消息。
-
 
 https://yq.aliyun.com/articles/66101
 一、消息中间件需要解决哪些问题？
 Publish/Subscribe
-
 发布订阅是消息中间件的最基本功能，也是相对于传统RPC通信而言。在此不再详述。
 
 Message Priority
-
 规范中描述的优先级是指在一个消息队列中，每条消息都有不同的优先级，一般用整数来描述，优先级高的消息先投递，如果消息完全在一个内存队列中，那么在投递前可以按照优先级排序，令优先级高的先投递。
 由于RocketMQ所有消息都是持久化的，所以如果按照优先级来排序，开销会非常大，因此RocketMQ没有特意支持消息优先级，但是可以通过变通的方式实现类似功能，即单独配置一个优先级高的队列，和一个普通优先级的队列， 将不同优先级发送到不同队列即可。
-
 对于优先级问题，可以归纳为2类：
-
 只要达到优先级目的即可，不是严格意义上的优先级，通常将优先级划分为高、中、低，或者再多几个级别。每个优先级可以用不同的topic表示，发消息时，指定不同的topic来表示优先级，这种方式可以解决绝大部分的优先级问题，但是对业务的优先级精确性做了妥协。
 严格的优先级，优先级用整数表示，例如0 ~ 65535，这种优先级问题一般使用不同topic解决就非常不合适。如果要让MQ解决此问题，会对MQ的性能造成非常大的影响。这里要确保一点，业务上是否确实需要这种严格的优先级，如果将优先级压缩成几个，对业务的影响有多大？
-Message Order
 
+Message Order
 消息有序指的是一类消息消费时，能按照发送的顺序来消费。例如：一个订单产生了3条消息，分别是订单创建，订单付款，订单完成。消费时，要按照这个顺序消费才能有意义。但是同时订单之间是可以并行消费的。
 RocketMQ可以严格的保证消息有序。
 
 Message Filter
-
 Broker端消息过滤
-
 在Broker中，按照Consumer的要求做过滤，优点是减少了对于Consumer无用消息的网络传输。
 缺点是增加了Broker的负担，实现相对复杂。
 1. 淘宝Notify支持多种过滤方式，包含直接按照消息类型过滤，灵活的语法表达式过滤，几乎可以满足最苛刻的过滤需求。
 2. 淘宝RocketMQ支持按照简单的Message Tag过滤，也支持按照Message Header、body进行过滤。
 3. CORBA Notification规范中也支持灵活的语法表达式过滤。
-
 Consumer端消息过滤
-
 这种过滤方式可由应用完全自定义实现，但是缺点是很多无用的消息要传输到Consumer端。
 
 Message Persistence
-
 消息中间件通常采用的几种持久化方式：
-
 持久化到数据库，例如Mysql。
 持久化到KV存储，例如levelDB、伯克利DB等KV存储系统。
 文件记录形式持久化，例如Kafka，RocketMQ
 对内存数据做一个持久化镜像，例如beanstalkd，VisiNotify
 (1)、(2)、(3)三种持久化方式都具有将内存队列Buffer进行扩展的能力，(4)只是一个内存的镜像，作用是当Broker挂掉重启后仍然能将之前内存的数据恢复出来。
 JMS与CORBA Notification规范没有明确说明如何持久化，但是持久化部分的性能直接决定了整个消息中间件的性能。
-
 RocketMQ充分利用Linux文件系统内存cache来提高性能。
 
 Message Reliablity
-
 影响消息可靠性的几种情况：
-
 Broker正常关闭
 Broker异常Crash
 OS Crash
@@ -149,34 +44,26 @@ OS Crash
 机器无法开机（可能是cpu、主板、内存等关键设备损坏）
 磁盘设备损坏。
 (1)、(2)、(3)、(4)四种情况都属于硬件资源可立即恢复情况，RocketMQ在这四种情况下能保证消息不丢，或者丢失少量数据（依赖刷盘方式是同步还是异步）。
-
 (5)、(6)属于单点故障，且无法恢复，一旦发生，在此单点上的消息全部丢失。RocketMQ在这两种情况下，通过异步复制，可保证99%的消息不丢，但是仍然会有极少量的消息可能丢失。通过同步双写技术可以完全避免单点，同步双写势必会影响性能，适合对消息可靠性要求极高的场合，例如与Money相关的应用。
-
 RocketMQ从3.0版本开始支持同步双写。
 
 Low Latency Messaging
-
 在消息不堆积情况下，消息到达Broker后，能立刻到达Consumer。
 RocketMQ使用长轮询Pull方式，可保证消息非常实时，消息实时性不低于Push。
 
 At least Once
-
 是指每个消息必须投递一次。
 RocketMQ Consumer先pull消息到本地，消费完成后，才向服务器返回ack，如果没有消费一定不会ack消息，所以RocketMQ可以很好的支持此特性。
 
 Exactly Only Once
-
 发送消息阶段，不允许发送重复的消息。
 消费消息阶段，不允许消费重复的消息。
 只有以上两个条件都满足情况下，才能认为消息是“Exactly Only Once”，而要实现以上两点，在分布式系统环境下，不可避免要产生巨大的开销。所以RocketMQ为了追求高性能，并不保证此特性，要求在业务上进行去重，也就是说消费消息要做到幂等性。RocketMQ虽然不能严格保证不重复，但是正常情况下很少会出现重复发送、消费情况，只有网络异常，Consumer启停等异常情况下会出现消息重复。
-
 此问题的本质原因是网络调用存在不确定性，即既不成功也不失败的第三种状态，所以才产生了消息重复性问题。
 
 Broker的Buffer满了怎么办？
-
 Broker的Buffer通常指的是Broker中一个队列的内存Buffer大小，这类Buffer通常大小有限，如果Buffer满了以后怎么办？
 下面是CORBA Notification规范中处理方式：
-
 RejectNewEvents 拒绝新来的消息，向Producer返回RejectNewEvents错误码。
 按照特定策略丢弃已有消息
 AnyOrder - Any event may be discarded on overflow. This is the default setting for this property.
@@ -185,54 +72,43 @@ LifoOrder - The last event received will be the first discarded.
 PriorityOrder - Events should be discarded in priority order, such that lower priority events will be discarded before higher priority events.
 DeadlineOrder - Events should be discarded in the order of shortest expiry deadline first.
 RocketMQ没有内存Buffer概念，RocketMQ的队列都是持久化磁盘，数据定期清除。
-
 对于此问题的解决思路，RocketMQ同其他MQ有非常显著的区别，RocketMQ的内存Buffer抽象成一个无限长度的队列，不管有多少数据进来都能装得下，这个无限是有前提的，Broker会定期删除过期的数据，例如Broker只保存3天的消息，那么这个Buffer虽然长度无限，但是3天前的数据会被从队尾删除。
 
 回溯消费
-
 回溯消费是指Consumer已经消费成功的消息，由于业务上需求需要重新消费，要支持此功能，Broker在向Consumer投递成功消息后，消息仍然需要保留。并且重新消费一般是按照时间维度，例如由于Consumer系统故障，恢复后需要重新消费1小时前的数据，那么Broker要提供一种机制，可以按照时间维度来回退消费进度。
 RocketMQ支持按照时间回溯消费，时间维度精确到毫秒，可以向前回溯，也可以向后回溯。
 
 消息堆积
-
 消息中间件的主要功能是异步解耦，还有个重要功能是挡住前端的数据洪峰，保证后端系统的稳定性，这就要求消息中间件具有一定的消息堆积能力，消息堆积分以下两种情况：
-
 消息堆积在内存Buffer，一旦超过内存Buffer，可以根据一定的丢弃策略来丢弃消息，如CORBA Notification规范中描述。适合能容忍丢弃消息的业务，这种情况消息的堆积能力主要在于内存Buffer大小，而且消息堆积后，性能下降不会太大，因为内存中数据多少对于对外提供的访问能力影响有限。
 消息堆积到持久化存储系统中，例如DB，KV存储，文件记录形式。 当消息不能在内存Cache命中时，要不可避免的访问磁盘，会产生大量读IO，读IO的吞吐量直接决定了消息堆积后的访问能力。
 评估消息堆积能力主要有以下四点：
-
 消息能堆积多少条，多少字节？即消息的堆积容量。
 消息堆积后，发消息的吞吐量大小，是否会受堆积影响？
 消息堆积后，正常消费的Consumer是否会受影响？
 消息堆积后，访问堆积在磁盘的消息时，吞吐量有多大？
+
 分布式事务
-
 已知的几个分布式事务规范，如XA，JTA等。其中XA规范被各大数据库厂商广泛支持，如Oracle，Mysql等。其中XA的TM实现佼佼者如Oracle Tuxedo，在金融、电信等领域被广泛应用。
-
-分布式事务涉及到两阶段提交问题，在数据存储方面的方面必然需要KV存储的支持，因为第二阶段的提交回滚需要修改消息状态，一定涉及到根据Key去查找Message的动作。RocketMQ在第二阶段绕过了根据Key去查找Message的问题，采用第一阶段发送Prepared消息时，拿到了消息的Offset，第二阶段通过Offset去访问消息，并修改状态，Offset就是数据的地址。
-
+分布式事务涉及到两阶段提交问题，在数据存储方面必然需要KV存储的支持，因为第二阶段的提交回滚需要修改消息状态，一定涉及到根据Key去查找Message的动作。RocketMQ在第二阶段绕过了根据Key去查找Message的问题，采用第一阶段发送Prepared消息时，拿到了消息的Offset，第二阶段通过Offset去访问消息，并修改状态，Offset就是数据的地址。
 RocketMQ这种实现事务方式，没有通过KV存储做，而是通过Offset方式，存在一个显著缺陷，即通过Offset更改数据，会令系统的脏页过多，需要特别关注。
 
 定时消息
-
 定时消息是指消息发到Broker后，不能立刻被Consumer消费，要到特定的时间点或者等待特定的时间后才能被消费。
 如果要支持任意的时间精度，在Broker层面，必须要做消息排序，如果再涉及到持久化，那么消息排序要不可避免的产生巨大性能开销。
 RocketMQ支持定时消息，但是不支持任意时间精度，支持特定的level，例如定时5s，10s，1m等。
 
 消息重试
-
 Consumer消费消息失败后，要提供一种重试机制，令消息再消费一次。Consumer消费消息失败通常可以认为有以下几种情况：
-
 由于消息本身的原因，例如反序列化失败，消息数据本身无法处理（例如话费充值，当前消息的手机号被注销，无法充值）等。这种错误通常需要跳过这条消息，再消费其他消息，而这条失败的消息即使立刻重试消费，99%也不成功，所以最好提供一种定时重试机制，即过10s秒后再重试。
 由于依赖的下游应用服务不可用，例如db连接不可用，外系统网络不可达等。遇到这种错误，即使跳过当前失败的消息，消费其他消息同样也会报错。这种情况建议应用sleep 30s，再消费下一条消息，这样可以减轻Broker重试消息的压力。
+
 RocketMQ Overview
 RocketMQ是否解决了上述消息中间件面临的问题，接下来让我们一探究竟。
 
 RocketMQ 是什么？
 screenshot.png
-
 上图是一个典型的消息中间件收发消息的模型，RocketMQ也是这样的设计，简单说来，RocketMQ具有以下特点：
-
 是一个队列模型的消息中间件，具有高性能、高可靠、高实时、分布式特点。
 Producer、Consumer、队列都可以分布式。
 Producer向一些队列轮流发送消息，队列集合称为Topic，Consumer如果做广播消费，则一个consumer实例消费这个Topic对应的所有队列，如果做集群消费，则多个Consumer实例平均消费这个topic对应的队列集合。
@@ -245,30 +121,27 @@ Producer向一些队列轮流发送消息，队列集合称为Topic，Consumer�
 
 RocketMQ 物理部署结构
 screenshot.png
-
 如上图所示， RocketMQ的部署结构有以下特点：
-
 Name Server是一个几乎无状态节点，可集群部署，节点之间无任何信息同步。
 Broker部署相对复杂，Broker分为Master与Slave，一个Master可以对应多个Slave，但是一个Slave只能对应一个Master，Master与Slave的对应关系通过指定相同的BrokerName，不同的BrokerId来定义，BrokerId为0表示Master，非0表示Slave。Master也可以部署多个。每个Broker与Name Server集群中的所有节点建立长连接，定时注册Topic信息到所有Name Server。
 Producer与Name Server集群中的其中一个节点（随机选择）建立长连接，定期从Name Server取Topic路由信息，并向提供Topic服务的Master建立长连接，且定时向Master发送心跳。Producer完全无状态，可集群部署。
 Consumer与Name Server集群中的其中一个节点（随机选择）建立长连接，定期从Name Server取Topic路由信息，并向提供Topic服务的Master、Slave建立长连接，且定时向Master、Slave发送心跳。Consumer既可以从Master订阅消息，也可以从Slave订阅消息，订阅规则由Broker配置决定。
+
 RocketMQ 逻辑部署结构
 screenshot.png
-
 如上图所示，RocketMQ的逻辑部署结构有Producer和Consumer两个特点。
 
 Producer Group
 用来表示一个发送消息应用，一个Producer Group下包含多个Producer实例，可以是多台机器，也可以是一台机器的多个进程，或者一个进程的多个Producer对象。一个Producer Group可以发送多个Topic消息，Producer Group作用如下：
-
 标识一类Producer
 可以通过运维工具查询这个发送消息应用下有多个Producer实例
 发送分布式事务消息时，如果Producer中途意外宕机，Broker会主动回调Producer Group内的任意一台机器来确认事务状态。
+
 Consumer Group
 用来表示一个消费消息应用，一个Consumer Group下包含多个Consumer实例，可以是多台机器，也可以是多个进程，或者是一个进程的多个Consumer对象。一个Consumer Group下的多个Consumer以均摊方式消费消息，如果设置为广播方式，那么这个Consumer Group下的每个实例都消费全量数据。
 
 RocketMQ 数据存储结构
 screenshot.png
-
 如上图所示，RocketMQ采取了一种数据与索引分离的存储方法。有效降低文件资源、IO资源，内存资源的损耗。即便是阿里这种海量数据，高并发场景也能够有效降低端到端延迟，并具备较强的横向扩展能力。
 
 
@@ -276,39 +149,28 @@ screenshot.png
 https://yq.aliyun.com/articles/66110
 一、过万的单机队列数
 诸如Kafka之类的消息中间件，在队列数上升时性能会产生巨大的损失，RocketMQ之所以能单机支持上万的持久化队列与其独特的存储结构分不开。
-
 screenshot.png
-
 如上图所示，所有的消息数据单独存储到一个Commit Log，完全顺序写，随机读。对最终用户展现的队列实际只存储消息在Commit Log的位置信息，并且串行方式刷盘。
-
 这样做的好处如下：
-
 队列轻量化，单个队列数据量非常少。
 对磁盘的访问串行化，避免磁盘竟争，不会因为队列增加导致IOWAIT增高。
 每个方案都有缺点，它的缺点如下：
-
 写虽然完全是顺序写，但是读却变成了完全的随机读。
 读一条消息，会先读Consume Queue，再读Commit Log，增加了开销。
 要保证Commit Log与Consume Queue完全的一致，增加了编程的复杂度。
 以上缺点如何克服：
-
 随机读，尽可能让读命中PAGECACHE，减少IO读操作，所以内存越大越好。如果系统中堆积的消息过多，读数据要访问磁盘会不会由于随机读导致系统性能急剧下降，答案是否定的。
-
 访问PAGECACHE时，即使只访问1k的消息，系统也会提前预读出更多数据，在下次读时，就可能命中内存。
 随机访问Commit Log磁盘数据，系统IO调度算法设置为NOOP方式，会在一定程度上将完全的随机读变成顺序跳跃方式，而顺序跳跃方式读较完全的随机读性能会高5倍以上。
 另外4k的消息在完全随机访问情况下，仍然可以达到8K次每秒以上的读性能。
 由于Consume Queue存储数据量极少，而且是顺序读，在PAGECACHE预读作用下，Consume Queue的读性能几乎与内存一致，即使堆积情况下。所以可认为Consume Queue完全不会阻碍读性能。
-
 Commit Log中存储了所有的元信息，包含消息体，类似于Mysql、Oracle的redolog，所以只要有Commit Log在，Consume Queue即使数据丢失，仍然可以恢复出来。
 
 二、两种刷盘策略
 RocketMQ的所有消息都是持久化的，先写入系统PAGECACHE，然后刷盘，可以保证内存与磁盘都有一份数据，访问时，直接从内存读取。
-
 异步刷盘
 screenshot.png
-
 在有RAID卡，SAS 15000转磁盘测试顺序写文件，速度可以达到300M每秒左右，而线上的网卡一般都为千兆网卡，写磁盘速度明显快于数据网络入口速度，那么是否可以做到写完内存就向用户返回，由后台线程刷盘呢？
-
 由于磁盘速度大于网卡速度，那么刷盘的进度肯定可以跟上消息的写入速度。
 万一由于此时系统压力过大，可能堆积消息，除了写入IO，还有读取IO，万一出现磁盘读取落后情况，会不会导致系统内存溢出，答案是否定的，原因如下：
 写入消息到PAGECACHE时，如果内存不足，则尝试丢弃干净的PAGE，腾出内存供新消息使用，策略是LRU方式。
@@ -316,49 +178,39 @@ screenshot.png
 综上，内存溢出的情况不会出现。
 同步刷盘
 screenshot.png
-
 同步刷盘与异步刷盘的唯一区别是异步刷盘写完PAGECACHE直接返回，而同步刷盘需要等待刷盘完成才返回，同步刷盘流程如下：
-
 写入PAGECACHE后，线程等待，通知刷盘线程刷盘。
 刷盘线程刷盘后，唤醒前端等待线程，可能是一批线程。
 前端等待线程向用户返回成功。
+
 三、多种消息查询手段
 丰富的消息查询手段，帮助用户快速定位消息，排查问题，RocketMQ支持按Message Id查询、按Message Key查询等。
-
 按照Message Id查询消息
 screenshot.png
-
 如上图所示，MsgId总共16字节，包含消息存储主机地址，消息Commit Log offset。从MsgId中解析出Broker的地址和Commit Log的偏移地址，然后按照存储格式所在位置消息buffer解析成一个完整的消息。
-
 按照Message Key查询消息
 screenshot.png
-
 RocketMQ可以为每条消息指定Key，并根据建立高效的消息索引，索引逻辑结果如上图所示，查询过程如下：
-
 根据查询的key的hashcode%slotNum得到具体的槽的位置（slotNum是一个索引文件里面包含的最大槽的数目，例如图中所示slotNum=5000000）。
 根据slotValue（slot位置对应的值）查找到索引项列表的最后一项（倒序排列，slotValue总是指向最新的一个索引项）。
 遍历索引项列表返回查询时间范围内的结果集（默认一次最大返回的32条记录）
 Hash冲突；寻找key的slot位置时相当于执行了两次散列函数，一次key的hash，一次key的hash值取模，因此这里存在两次冲突的情况；第一种，key的hash值不同但模数相同，此时查询的时候会在比较一次key的hash值（每个索引项保存了key的hash值），过滤掉hash值不相等的项。第二种，hash值相等但key不等，出于性能的考虑冲突的检测放到客户端处理（key的原始值是存储在消息文件中的，避免对数据文件的解析），客户端比较一次消息体的key是否相同。
 存储；为了节省空间索引项中存储的时间是时间差值（存储时间-开始时间，开始时间存储在索引文件头中），整个索引文件是定长的，结构也是固定的 。
+
 四、消息过滤机制
 RocketMQ的消息过滤方式有别于其他消息中间件，是在订阅时，再做过滤，先来看下Consume Queue的存储结构。
-
 screenshot.png
-
 在Broker端进行Message Tag比对，先遍历Consume Queue，如果存储的Message Tag与订阅的Message Tag不符合，则跳过，继续比对下一个，符合则传输给Consumer。注意：Message Tag是字符串形式，Consume Queue中存储的是其对应的hashcode，比对时也是比对hashcode。
 Consumer收到过滤后的消息后，同样也要执行在Broker端的操作，但是比对的是真实的Message Tag字符串，而不是Hashcode。
 为什么过滤要这样做？
-
 Message Tag存储Hashcode，是为了在Consume Queue定长方式存储，节约空间。
 过滤过程中不会访问Commit Log数据，可以保证堆积情况下也能高效过滤。
 即使存在Hash冲突，也可以在Consumer端进行修正，保证万无一失。
+
 五、顺序消息
 很多业务有顺序消息的需求，RocketMQ支持全局和局部的顺序，一般推荐使用局部顺序，将具有顺序要求的一类消息hash到同一个队列中便可保持有序，如下图所示。
-
 screenshot.png
-
 但顺序消息，有自己的缺陷：
-
 发送顺序消息无法利用集群FailOver特性
 消费顺序消息的并行度依赖于队列数量
 队列热点问题，个别队列由于哈希不均导致消息过多，消费速度跟不上，产生消息堆积问题
@@ -370,9 +222,7 @@ screenshot.png
 
 七、定时消息
 日常业务中有很多定时消息的场景，比如在电商交易中超时未支付关闭订单的场景，在订单创建时会发送一条 MQ 延时消息，这条消息将会在30分钟以后投递给消费者，消费者收到此消息后需要判断对应的订单是否已完成支付。如支付未完成，则关闭订单，如已完成支付则忽略。
-
 RocketMQ为了实现定时消息，引入延时级别，牺牲部分灵活性，事实上很少有业务需要随意指定定时时间的灵活性。定时消息内容被存储在数据文件中，索引按延时级别堆积在定时消息队列中，具有跟普通消息一致的堆积能力，如下图所示。
-
 screenshot.png
 
 八、总结
@@ -384,12 +234,10 @@ https://yq.aliyun.com/articles/66128
 一、Producer最佳实践
 发送消息注意事项
 一个应用尽可能用一个Topic，消息子类型用tags来标识，tags可以由应用自由设置。只有发送消息设置了tags，消费方在订阅消息时，才可以利用tags在broker做消息过滤。
-
 message.setTags("TagA");
+
 每个消息在业务层面的唯一标识码，要设置到keys字段，方便将来定位消息丢失问题。服务器会为每个消息创建索引（哈希索引），应用可以通过topic，key来查询这条消息内容，以及消息被谁消费。由于是哈希索引，请务必保证key尽可能唯一，这样可以避免潜在的哈希冲突。
-
 消息发送成功或者失败，要打印消息日志，务必要打印sendresult和key字段。
-
 SEND_OK，消息发送成功。
 FLUSH_DISK_TIMEOUT，消息发送成功，但是服务器刷盘超时，消息已经进入服务器队列，只有此时服务器宕机，消息才会丢失。
 FLUSH_SLAVE_TIMEOUT，消息发送成功，但是服务器同步到Slave时超时，消息已经进入服务器队列，只有此时服务器宕机，消息才会丢失。
@@ -398,23 +246,19 @@ SLAVE_NOT_AVAILABLE，消息发送成功，但是此时slave不可用，消息�
 
 消息发送失败如何处理
 Producer的send方法本身支持内部重试，重试逻辑如下：
-
 至多重试3次。
 如果发送失败，则轮转到下一个Broker。
 这个方法的总耗时时间不超过sendMsgTimeout设置的值，默认10s。
 所以，如果本身向broker发送消息产生超时异常，就不会再做重试。
-
 以上策略仍然不能保证消息一定发送成功，为保证消息一定成功，建议应用这样做：
-
 如果调用send同步方法发送失败，则尝试将消息存储到db，由后台线程定时重试，保证消息一定到达Broker。
 上述db重试方式为什么没有集成到MQ客户端内部做，而是要求应用自己去完成，我们基于以下几点考虑：
-
 MQ的客户端设计为无状态模式，方便任意的水平扩展，且对机器资源的消耗仅仅是cpu、内存、网络。
 如果MQ客户端内部集成一个KV存储模块，那么数据只有同步落盘才能较可靠，而同步落盘本身性能开销较大，所以通常会采用异步落盘，又由于应用关闭过程不受MQ运维人员控制，可能经常会发生kill -9这样暴力方式关闭，造成数据没有及时落盘而丢失。
 Producer所在机器的可靠性较低，一般为虚拟机，不适合存储重要数据。 综上，建议重试过程交由应用来控制。
+
 选择oneway形式发送
 一个RPC调用，通常是这样一个过程
-
 客户端发送请求到服务器
 服务器处理该请求
 服务器向客户端返回应答
@@ -423,29 +267,21 @@ Producer所在机器的可靠性较低，一般为虚拟机，不适合存储重
 二、Consumer 最佳实践
 消费过程要做到幂等
 RocketMQ目前无法避免消息重复，所以如果业务对消费重复非常敏感，务必要在业务层面去重，有以下几种去重方式：
-
 将消息的唯一键，可以是msgId，也可以是消息内容中的唯一标识字段，例如订单Id等，消费之前判断是否在Db或Tair(全局KV存储)中存在，如果不存在则插入，并消费，否则跳过。（实际过程要考虑原子性问题，判断是否存在可以尝试插入，如果报主键冲突，则插入失败，直接跳过）。msgId一定是全局唯一标识符，但是可能会存在同样的消息有两个不同msgId的情况（有多种原因），这种情况可能会使业务上重复消费，建议最好使用消息内容中的唯一标识字段去重。
-
 使用业务层面的状态机去重。
 
 提高消费并行度
 消费并行度与消费吞吐量关系如下图所示：
-
 screenshot.png
-
 消费并行度与消费RT关系如下图所示：
-
 screenshot.png
-
 绝大部分消息消费行为属于IO密集型，即可能是操作数据库，或者调用RPC，这类消费行为的消费速度在于后端数据库或者外系统的吞吐量，通过增加消费并行度，可以提高总的消费吞吐量，但是并行度增加到一定程度，反而会下降，如图所示，呈现抛物线形式。所以应用必须要设置合理的并行度。CPU密集型应用除外。
-
 修改消费并行度方法如下所示：
-
 a. 同一个ConsumerGroup下，通过增加Consumer实例数量来提高并行度，超过订阅队列数的Consumer实例无效。可以通过加机器，或者在已有机器启动多个进程的方式。
 b. 提高单个Consumer的消费并行线程，通过修改以下参数
-
 consumeThreadMin
 consumeThreadMax
+
 消息批量消费
 某些业务流程如果支持批量方式消费，则可以很大程度上提高消费吞吐量，例如订单扣款类应用，一次处理一个订单耗时1秒钟，一次处理10个订单可能也只耗时2秒钟，这样即可大幅度提高消费的吞吐量，通过设置consumer的consumeMessageBatchMaxSize这个参数，默认是1，即一次只消费一条消息，例如设置为N，那么每次消费的消息数小于等于N。
 
@@ -476,60 +312,8 @@ public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeCo
 向DB插入数据3
 向DB插入数据4
 这条消息的消费过程与DB交互了4次，如果按照每次5ms计算，那么总共耗时20ms，假设业务计算耗时5ms，那么总过耗时25ms，如果能把4次DB交互优化为2次，那么总耗时就可以优化到15ms，也就是说总体性能提高了40%。
-
 对于Mysql等DB，如果部署在磁盘，那么与DB进行交互，如果数据没有命中cache，每次交互的RT会直线上升，如果采用SSD，则RT上升趋势要明显好于磁盘。个别应用可能会遇到这种情况：
 在线下压测消费过程中，db表现非常好，每次RT都很短，但是上线运行一段时间，RT就会变长，消费吞吐量直线下降。
-
 主要原因是线下压测时间过短，线上运行一段时间后，cache命中率下降，那么RT就会增加。建议在线下压测时，要测试足够长时间，尽可能模拟线上环境，压测过程中，数据的分布也很重要，数据不同，可能cache的命中率也会完全不同。
-
-
-https://github.com/alibaba/RocketMQ/wiki/core-concept
-Producer
-发送消息到brokers，提供多种发送模式，synchronous，asynchronous和one-way
-Consumer
-从brokers获取消息，提供两种类型的消费者，PullConsumer，主动从brokers拉取消息，一旦拉到消息，应用程序就初始化消费进程。PushConsumer，已在内部封装好了消息拉取，消费进度维护，其它必要的工作，留了一个回调接口给最终用户实现，在消息到来时将会被执行
-Producer Group
-相同角色的生产者被分组到一起，同一组内的生产者实例可以互相替换使用，去提交或回滚别人创建的事务。生产者足够强大，每个进程的每个组只允许有一个生产者实例
-Consumer Group
-相同角色的消费者被分组到一起，从消息消费这方面讲，消费者组很容易实现负载均衡和容错，组内的消费者必须有精确相同的topic订阅
-Topic
-Topic是一个分类，生产者基于它分发消息，消费者基于它拉取消息，Topic和生产者消费者之间有非常松散的关系。一个topic可以有0个到多个生产者，一个生产者可以发送多个不同topic消息，一个topic可以被0个到多个消费者组订阅，一个消费者组可以订阅一个或多个topic（只要组内的消费者订阅一致就行了）
-Message Queue
-topic在内部从逻辑上被划分为一个或多个子topic，把这些子topic叫做message queues，这个概念在实现一些有价值的特性时起了主要作用，例如故障转移，最大并发等
-Message
-message封装了要投递的信息，消息必须指定一个topic，可以理解为要发送的目的地。还有一个可选的tag集合，还可以包含额外的key-value对
-Tag
-tag可以认为是子topic，提供了一个额外的灵活性，具有相同topic不同tag的消息目的不同但又相关联
-Broker
-broker是主角，它接收生产者发过来的消息，存储它们，并准备服务消费者对消息的获取，同样存储和消息消费相关的元数据，包括消费者组，消费进度偏移量，topic/queue信息
-Name Server
-提供路由信息，生产者和消费者通过topic查找broker列表来写入或读取消息
-Message Model
-Clustering（集群消息），Broadcasting（广播消息）
-Message Order
-当DefaultMQPushConsumer使用时，你可以决定是顺序消费消息还是并发消费消息，Orderly，对于每一个message queue，消息的消费顺序和发送顺序一样，如果要求全局的顺序一样，那么一个topic只能有一个message queue，警告，如果指定了顺序消费，消息消费的最大并发数就是消费者组订阅的message queues个数。Concurrently，消息消费的最大并发数只受到消费者客户端指定的线程池的限制
-
-http://rocketmq.incubator.apache.org/docs/best-practice-namesvr/
-Best Practice For NameServer
-协调分布式系统的各个组件，管理topic路由信息，粗略地说有两部分组成，broker周期性地更新元数据到nameserver，nameserver服务客户端（生产者和消费者），提供最新的路由信息。在启动broker和客户端前，需要把一个nameserver的地址列表告诉它们，以便它们连接。可以有四种方式，编程方式，在broker的配置文件中指定，namesrvAddr=name-server-ip1:port;name-server-ip2:port，在客户端实例化时指定，DefaultMQProducer producer = new DefaultMQProducer("please_rename_unique_group_name");producer.setNamesrvAddr("name-server1-ip:port;name-server2-ip:port");DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("please_rename_unique_group_name");consumer.setNamesrvAddr("name-server1-ip:port;name-server2-ip:port");Java选项方式，在启动前通过连续Java选项rocketmq.namesrv.addr指定，环境变量方式，定义一个NAMESRV_ADDR环境变量，HTTP端点方式，可以通过一个http地址访问nameserver，默认是http://jmenv.tbsite.net:8080/rocketmq/nsaddr，其中域名部分可以通过java选项rocketmq.namesrv.domain来重写，地址部分可以通过java选项rocketmq.namesrv.domain.subgroup来重写，这种方式更加灵活，可以动态添加或删除nameserver节点，而对broker和客户端没有影响。它们之间的优先级是Programmatic Way > Java Options > Environment Variable > HTTP Endpoint
-
-http://rocketmq.incubator.apache.org/docs/best-practice-consumer/
-Best Practice For Consumer
-不同的消费者组可以独立地消费相同的topic，每个组都有自己的消费偏移量，每个组内的消费者订阅的topic必须完全一样。消息监听器，顺序消费，消费者锁住每个MessageQueue确保一个接一个地消费，会造成性能损失，不建议抛异常，可以返回ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT，并发消费，性能较好，不建议抛异常，可以返回ConsumeConcurrentlyStatus.RECONSUME_LATER。消费状态，对于MessageListenerConcurrently，可以返回RECONSUME_LATER来告知暂时无法消费稍后再试这条消息，可以继续消费其它消息。对于MessageListenerOrderly，比较关注顺序，不能跳过这个消息，可以返回SUSPEND_CURRENT_QUEUE_A_MOMENT来告知暂停一会。监听器不建议被阻塞，最终消费者进程将卡住。线程数，消费者内部使用ThreadPoolExecutor来处理消费，可以通过使用setConsumeThreadMin或setConsumeThreadMax来调整。从什么地方开始消费，CONSUME_FROM_LAST_OFFSET忽略历史消息，消费新产生的，CONSUME_FROM_FIRST_OFFSET消费所有已存在的消息，CONSUME_FROM_TIMESTAMP消费某个指定的时间戳之后的。许多情况可能造成重复，比如生产者重发或消费者没有更新偏移量，这时应该做额外的工作来去重，例如检查数据库主键。
-
-http://rocketmq.incubator.apache.org/docs/best-practice-producer/
-Best Practice For Producer
-发送状态，当消息的isWaitStoreMsgOK=true时，有若干种状态，否则只要不抛异常总是返回SEND_OK。FLUSH_DISK_TIMEOUT，在同步刷盘时，指定的时间内没有刷完，FLUSH_SLAVE_TIMEOUT，在broker是同步master时，从节点在指定的时间内没有同步完，SLAVE_NOT_AVAILABLE，当broker是同步master时，没有配置从节点，SEND_OK，并不意味着可靠，如果不能容忍消息丢失，应该启用同步master或同步刷盘。重复或丢失，当FLUSH_DISK_TIMEOUT，FLUSH_SLAVE_TIMEOUT或broker关闭时消息可能会丢失，你可以选择不处理，消息可能真丢失了，你可以选择重发，消息可能重复，通常建议重发，且在消费时采用某种方法去重。注意，当是SLAVE_NOT_AVAILABLE时，重发也没有用，这时可以给管理员发告警。超时，当超过指定时间还没有响应的话，客户端抛出RemotingTimeoutException异常，可以在发送时send(msg, timeout)重新指定超时时间，不建议时间太短，因为要刷盘或同步给从节点，如果比syncFlushTimeout大得多的话也没有什么用，因为在客户端超时前broker会返回FLUSH_DISK_TIMEOUT或FLUSH_SLAVE_TIMEOUT。建议消息不大于512K，默认发送是同步的，可以使用异步发送send(msg, callback)带回调。生产者组，通常没有什么影响，但涉及到事务时需要注意，通常一个JVM里的一个生产者组只允许创建一个生产者实例。生产者是线程安全的。如果想在一个JVM里多于一个生产者实例，例如用于大数据处理，请使用异步发送且3到5个实例就足够了，为每个生产者实例设置名称setInstanceName
-
-http://rocketmq.incubator.apache.org/docs/best-practice-broker/
-Best Practice For Broker
-broker有三种角色，ASYNC_MASTER，SYNC_MASTER或SLAVE，如果不能容忍消息丢失，建议SYNC_MASTER加上SLAVE，可以容忍丢失希望可用性，建议ASYNC_MASTER加上SLAVE，如果想简单一些，建议ASYNC_MASTER不要SLAVE。刷盘类型，建议ASYNC_FLUSH，因为SYNC_FLUSH会造成较多性能损失，如果希望可靠性，建议SYNC_MASTER加上SLAVE
-
-
-
-
-
-
-
 
 
