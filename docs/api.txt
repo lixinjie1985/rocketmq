@@ -1,6 +1,39 @@
+package com.alibaba.rocketmq.client.producer
 MQAdmin接口，用于对MQ的基本管理，包括创建topic，获取偏移量，查询消息等
 MQProducer接口继承MQAdmin，用于发送消息，包括同步，异步，OneWay，事务等发送方式
 ClientConfig类，客户端基本配置，包括namesrv、ip等基本参数
 DefaultMQProducer类继承ClientConfig类并实现MQProducer接口，用来发消息，具体又委托给DefaultMQProducerImpl类来发送
 SendStatus枚举，发送状态，表示broker对发送的消息的处理结果
 SendResult类，发送结果，包括发送状态，消息ID，进入的消息队列，偏移量，事务ID
+SendCallback接口，异步发送时的回调接口，成功时获得结果，失败时获得异常
+TransactionMQProducer类继承DefaultMQProducer类，用来发送事务消息，具体委托给DefaultMQProducerImpl类来发送。具体过程是，
+先给消息设置一个属性，标明它是事务消息，然后把消息发给broker，如果发送成功，再使用LocalTransactionExecuter接口来执行本地事务操作，
+使用LocalTransactionState枚举表示事务执行的结果，如果事务成功，则提交整个事务，第一步发送的事务消息的状态会修改为正常消息，
+可以被消费，如果事务失败，则回滚整个事务，第一步发送的事务消息的状态会被修改为无效，不会再被消费，如果事务无法确定成功还是失败，
+那整个事务就无法进一步处理，那么broker会定时主动访问生产者，使用TransactionCheckListener接口来确认本地的事务到底是成功还是失败，
+然后根据结果去修改broker中那个事务消息的状态，如果本次事务结果还是无法确定，那么会隔段时间重复再来确认
+TransactionSendResult类继承SendResult类，表示事务消息的发送结果，其实就多了个事务状态LocalTransactionState枚举类型字段
+MessageQueueSelector接口，可以选择消息要发送到的队列，把某些相关消息发送到同一个队列
+package com.alibaba.rocketmq.client.producer.selector
+SelectMessageQueueByHash类实现MessageQueueSelector接口，按照第三个参数的哈希值来选择哪个队列
+SelectMessageQueueByRandoom类实现MessageQueueSelector接口，以系统当前时间为种子，生成一个随机数，来选择哪个队列
+package com.alibaba.rocketmq.client.impl.producer
+TopicPublishInfo类，表示一个topic对应的多个队列，发送时循环发送给多个队列中的每个
+DefaultMQProducerImpl类，存储和管理topic和TopicPublishInfo类对应关系，根据topic可以找到对应的队列，消息会循环地发给多个broker里面
+的多个队列，具体发送委托给MQClientInstance类
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
