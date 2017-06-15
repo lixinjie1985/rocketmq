@@ -1,7 +1,9 @@
-package com.alibaba.rocketmq.client.producer
-MQAdmin接口，用于对MQ的基本管理，包括创建topic，获取偏移量，查询消息等
-MQProducer接口继承MQAdmin，用于发送消息，包括同步，异步，OneWay，事务等发送方式
+package com.alibaba.rocketmq.client
 ClientConfig类，客户端基本配置，包括namesrv、ip等基本参数
+MQAdmin接口，用于对MQ的基本管理，包括创建topic，获取偏移量，查询消息等
+
+package com.alibaba.rocketmq.client.producer
+MQProducer接口继承MQAdmin，用于发送消息，包括同步，异步，OneWay，事务等发送方式
 DefaultMQProducer类继承ClientConfig类并实现MQProducer接口，用来发消息，具体又委托给DefaultMQProducerImpl类来发送
 SendStatus枚举，发送状态，表示broker对发送的消息的处理结果
 SendResult类，发送结果，包括发送状态，消息ID，进入的消息队列，偏移量，事务ID
@@ -14,13 +16,72 @@ TransactionMQProducer类继承DefaultMQProducer类，用来发送事务消息，
 然后根据结果去修改broker中那个事务消息的状态，如果本次事务结果还是无法确定，那么会隔段时间重复再来确认
 TransactionSendResult类继承SendResult类，表示事务消息的发送结果，其实就多了个事务状态LocalTransactionState枚举类型字段
 MessageQueueSelector接口，可以选择消息要发送到的队列，把某些相关消息发送到同一个队列
+
 package com.alibaba.rocketmq.client.producer.selector
 SelectMessageQueueByHash类实现MessageQueueSelector接口，按照第三个参数的哈希值来选择哪个队列
 SelectMessageQueueByRandoom类实现MessageQueueSelector接口，以系统当前时间为种子，生成一个随机数，来选择哪个队列
+
 package com.alibaba.rocketmq.client.impl.producer
 TopicPublishInfo类，表示一个topic对应的多个队列，发送时循环发送给多个队列中的每个
 DefaultMQProducerImpl类，存储和管理topic和TopicPublishInfo类对应关系，根据topic可以找到对应的队列，消息会循环地发给多个broker里面
 的多个队列，具体发送委托给MQClientInstance类
+
+package com.alibaba.rocketmq.client.consumer
+MQConsumer接口继承MQAdmin接口，表示消费公共接口，提供消费失败时把消息发回broker，提供根据topic获取对应的队列
+MQPullConsumer接口继承MQConsumer接口，提供从broker拉取消息，获取偏移量，更新偏移量，根据topic以负载均衡的方式获取对应的消息队列。拉取方式包括同步非阻塞拉取，
+同步带超时时间拉取，异步非阻塞拉取，异步带超时时间拉取，同步阻塞拉取，异步阻塞拉取，
+MQPushConsumer接口继承MQConsumer接口，提供订阅topic，解除订阅topic，暂停消费、恢复消费，注册并发消费回调接口，注册顺序消费回调接口。
+broker会主动把消息推送过来，客户端通过注册的消费回调接口进行消费
+PullStatus枚举，拉取状态，表示一次拉取的结果状态
+PullResult类，拉取结果，包括拉取状态，拉取到的消息，最大偏移量，最小偏移量，下次开始的偏移量
+PullCallback接口，异步拉取时的回调接口，成功时获得拉取结果，失败时获取异常
+MessageQueueListener接口，消息队列监听器接口，客户端可以注册一个，当消息队列发生改变时可以得到通知
+DefaultMQPushConsumer类继承ClientConfig类实现MQPushConsumer接口，主要包括一些配置参数，只要订阅topic，注册消息消费回调接口，就可以以推的方式消费了
+如果消费压力过大，可以调用挂起接口，暂停broker的推送，压力小之后，调用恢复接口，恢复broker的推送。具体委托DefaultMQPushConsumerImpl类来完成操作
+DefaultMQPullConsumer类继承ClientConfig类实现MQPullConsumer接口，包含一些配置信息，消息队列分配策略AllocateMessageQueueStrategy接口，
+可以拉取消息进行消费，具体委托给DefaultMQPullConsumerImpl类来完成操作
+
+package com.alibaba.rocketmq.client.consumer.listener
+MessageListener接口，标识接口，没有定义方法，用于接收异步分发的消息
+MessageListenerConcurrently接口继承MessageListener接口，并发地接收消息，消费者并发地消费
+MessageListenerOrderly接口继承MessageListener接口，顺序地接收消息，一个队列一个线程，消费者顺序地消费
+ConsumeConcurrentlyContext类，并发消费的上下文
+ConsumeConcurrentlyStatus枚举，并发消费的结果
+ConsumeOrderlyContext类，顺序消费的上下文
+ConsumeOrderlyStatus枚举，顺序消费的结果
+
+package com.alibaba.rocketmq.client.consumer.rebalance
+AllocateMessageQueueAveragely类实现AllocateMessageQueueStrategy接口，平均分配消息队列
+AllocateMessageQueueAveragelyByCircle类实现AllocateMessageQueueStrategy接口，按圆环平均分配消息队列
+AllocateMessageQueueByConfig类实现AllocateMessageQueueStrategy接口，按配置分配消息队列
+AllocateMessageQueueByMachineRoom类实现AllocateMessageQueueStrategy接口，按机房分配消息队列
+
+package com.alibaba.rocketmq.common
+BrokerConfig类，表示一个broker的配置，包括namesrv地址，broker的IP，broker的名称，broker所在集群的名称，brokerId默认是0表示主节点，默认每个topic分配8个队列
+TopicConfig类，表示一个topic的配置，包括topic的名称，权限默认读写，默认读队列数目16，默认写队列数据16
+
+package com.alibaba.rocketmq.common.message
+MessageId类，表示一个消息发送到broker后的ID，由存储主机的IP和端口，加上该消息的偏移量组成
+MessageQueue类，表示一个消息队列，包括topic，broker的名称，队列ID
+
+package com.alibaba.rocketmq.common.protocol.body
+ClusterInfo类，表示集群信息，包括集群名称和集群中包含所有broker之间的对应关系，broker和broker里面包含的所有节点之间的对应关系
+
+package com.alibaba.rocketmq.common.protocol.heartbeat
+ConsumeType枚举，消费类型，包括主动消费、被动消费
+MessageModel枚举，消息模型，包括广播模型、集群模型
+SubscriptionData类，订阅数据，包括topic，子字符串，tag集合
+ConsumerData类，消费者数据，包括消费者所属组的名称，消费类型，消息模型，首次启动时从什么位置开始消费，topic订阅的相关数据
+
+package com.alibaba.rocketmq.common.protocol.route
+BrokerData类，表示broker数据，包括broker的名称，以及包含的所有节点的ID和地址之间的映射关系
+QueueData类，表示队列数据，包括队列所在broker的名称，读队列数目，写队列数据，权限
+
+
+
+
+
+
 
 
 

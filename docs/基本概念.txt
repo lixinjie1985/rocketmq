@@ -1,7 +1,7 @@
 整体组成
 一个主节点和多个从节点组成一个broker，它们具有相同的brokerName，且brokerId为0的自动成为主节点，非0的成为从节点
 多个broker一起组成一个MQ集群，broker中的每个节点有多个队列，只有主节点可以接受写请求，主、从节点都可以接受读请求
-一个topic可以对应于多个broker的多个消息队列，消息将循环地发送给多个broker中的多个队列
+一个topic可以对应于多个broker的多个队列，消息将循环地发送给多个broker中的多个队列
 
 应用场景
 MQ 可应用在多个领域，包括异步通信解耦、企业解决方案、金融支付、电信、电子商务、快递物流、广告营销、社交、即时通信、手游、视频、物联网、车联网等。
@@ -16,83 +16,63 @@ MQ 可以应用但不局限于以下业务场景：
 
 名词解释
 Message Queue
-
 消息队列，阿里云商用的专业消息中间件，是企业级互联网架构的核心产品，提供基于高可用分布式集群技术搭建的消息发布订阅、轨迹查询、资源统计、定时（延时）、监控报警等一系列消息云服务。
 
 Message
-
 消息，消息队列中信息传递的载体。
 
 Message ID
-
 消息的全局唯一标识，由 MQ 系统自动生成，唯一标识某条消息。
 
 Message Key
-
 消息的业务标识，由消息生产者（Producer）设置，唯一标识某个业务逻辑。
 
 Topic
-
 消息主题，一级消息类型，通过 Topic 对消息进行分类。
 
 Tag
-
 消息标签，二级消息类型，用来进一步区分某个 Topic 下的消息分类。
 
 Producer
-
 消息生产者，也称为消息发布者，负责生产并发送消息。
 
 Producer ID
-
 一类 Producer 的标识，这类 Producer 通常生产并发送一类消息，且发送逻辑一致。
 
 Producer 实例
-
 Producer 的一个对象实例，不同的 Producer 实例可以运行在不同进程内或者不同机器上。Producer 实例线程安全，可在同一进程内多线程之间共享。
 
 Consumer
-
 消息消费者，也称为消息订阅者，负责接收并消费消息。
 
 Consumer ID
-
 一类 Consumer 的标识，这类 Consumer 通常接收并消费一类消息，且消费逻辑一致。
 
 Consumer 实例
-
 Consumer 的一个对象实例，不同的 Consumer 实例可以运行在不同进程内或者不同机器上。一个 Consumer 实例内配置线程池消费消息。
 
 集群消费
-
 一个 Consumer ID 所标识的所有 Consumer 平均分摊消费消息。例如某个 Topic 有 9 条消息，一个 Consumer ID 有 3 个 Consumer 实例，那么在集群消费模式下每个实例平均分摊，只消费其中的 3 条消息。
 
 广播消费
-
 一个 Consumer ID 所标识的所有 Consumer 都会各自消费某条消息一次。例如某个 Topic 有 9 条消息，一个 Consumer ID 有 3 个 Consumer 实例，那么在广播消费模式下每个实例都会各自消费 9 条消息。
 
 定时消息
-
 Producer 将消息发送到 MQ 服务端，但并不期望这条消息立马投递，而是推迟到在当前时间点之后的某一个时间投递到 Consumer 进行消费，该消息即定时消息。
 
 延时消息
-
 Producer 将消息发送到 MQ 服务端，但并不期望这条消息立马投递，而是延迟一定时间后才投递到 Consumer 进行消费，该消息即延时消息。
 
 消息堆积
-
 Producer 已经将消息发送到 MQ 服务端，但由于 Consumer 消费能力有限，未能在短时间内将所有消息正确消费掉，此时在 MQ 服务端保存着未被消费的消息，该状态即消息堆积。
 
 消息过滤
-
 订阅者可以根据消息标签（Tag）对消息进行过滤，确保订阅者最终只接收被过滤后的消息类型。消息过滤在 MQ 服务端完成。
 
 消息轨迹
-
 在一条消息从发布者发出到订阅者消费处理过程中，由各个相关节点的时间、地点等数据汇聚而成的完整链路信息。通过消息轨迹，用户能清晰定位消息从发布者发出，经由 MQ 服务端，投递给消息订阅者的完整链路，方便定位排查问题。
 
 重置消费位点
-
 以时间轴为坐标，在消息持久化存储的时间范围内（默认3天），重新设置消息订阅者对其订阅 Topic 的消费进度，设置完成后订阅者将接收设定时间点之后由消息发布者发送到 MQ 服务端的消息。
 
 
@@ -100,13 +80,15 @@ https://github.com/alibaba/RocketMQ/wiki/core-concept
 Producer
 发送消息到brokers，提供多种发送模式，synchronous，asynchronous和one-way
 Consumer
-从brokers获取消息，提供两种类型的消费者，PullConsumer，主动从brokers拉取消息，一旦拉到消息，应用程序就初始化消费进程。PushConsumer，已在内部封装好了消息拉取，消费进度维护，其它必要的工作，留了一个回调接口给最终用户实现，在消息到来时将会被执行
+从brokers获取消息，提供两种类型的消费者，PullConsumer，主动从brokers拉取消息，一旦拉到消息，应用程序就初始化消费进程。
+PushConsumer，已在内部封装好了消息拉取，消费进度维护，其它必要的工作，留了一个回调接口给最终用户实现，在消息到来时将会被执行
 Producer Group
 相同角色的生产者被分组到一起，同一组内的生产者实例可以互相替换使用，去提交或回滚别人创建的事务。生产者足够强大，每个进程的每个组只允许有一个生产者实例
 Consumer Group
 相同角色的消费者被分组到一起，从消息消费这方面讲，消费者组很容易实现负载均衡和容错，组内的消费者必须有精确相同的topic订阅
 Topic
-Topic是一个分类，生产者基于它分发消息，消费者基于它拉取消息，Topic和生产者消费者之间有非常松散的关系。一个topic可以有0个到多个生产者，一个生产者可以发送多个不同topic消息，一个topic可以被0个到多个消费者组订阅，一个消费者组可以订阅一个或多个topic（只要组内的消费者订阅一致就行了）
+Topic是一个分类，生产者基于它分发消息，消费者基于它拉取消息，Topic和生产者消费者之间有非常松散的关系。一个topic可以有0个到多个生产者，
+一个生产者可以发送多个不同topic消息，一个topic可以被0个到多个消费者组订阅，一个消费者组可以订阅一个或多个topic（只要组内的消费者订阅一致就行了）
 Message Queue
 topic在内部从逻辑上被划分为一个或多个子topic，把这些子topic叫做message queues，这个概念在实现一些有价值的特性时起了主要作用，例如故障转移，最大并发等
 Message
@@ -121,8 +103,8 @@ Message Model
 Clustering（集群消息），Broadcasting（广播消息）
 Message Order
 当DefaultMQPushConsumer使用时，你可以决定是顺序消费消息还是并发消费消息，Orderly，对于每一个message queue，消息的消费顺序和发送顺序一样，如果要求全局的顺序一样，
-那么一个topic只能有一个message queue，警告，如果指定了顺序消费，消息消费的最大并发数就是消费者组订阅的message queues个数。Concurrently，
-消息消费的最大并发数只受到消费者客户端指定的线程池的限制
+那么一个topic只能有一个message queue，警告，如果指定了顺序消费，消息消费的最大并发数就是消费者组订阅的message queues个数。
+Concurrently，消息消费的最大并发数只受到消费者客户端指定的线程池的限制
 
 http://rocketmq.incubator.apache.org/docs/best-practice-namesvr/
 Best Practice For NameServer
