@@ -77,24 +77,3 @@ package com.alibaba.rocketmq.common.protocol.route
 BrokerData类，表示broker数据，包括broker的名称，以及包含的所有节点的ID和地址之间的映射关系
 QueueData类，表示队列数据，包括队列所在broker的名称，读队列数目，写队列数据，权限
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
