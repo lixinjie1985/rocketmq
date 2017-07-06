@@ -27,6 +27,11 @@ public class Producer {
 				
 				//把一组相关且有顺序的消息发送到同一个队列中，在消费端每个队列只有一个线程消费
 				//这样消费顺序就和发送顺序一致了，此时队列的数目就是并发数，增大并发就要增加队列个数
+				/**
+				 * @param msg 要发送的消息，send方法的第一个参数
+				 * @param mqs 消息的topic对应的所有队列
+				 * @param arg send方法的最后一个参数
+				 */
 				@Override
 				public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
 					Integer id = (Integer)arg;
