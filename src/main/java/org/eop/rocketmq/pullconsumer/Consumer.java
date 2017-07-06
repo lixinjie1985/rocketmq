@@ -26,8 +26,12 @@ public class Consumer {
         
         Set<MessageQueue> mqs = consumer.fetchSubscribeMessageQueues("Topic7");
         for (MessageQueue mq : mqs) {
+        	//从broker获取偏移量（broker维护偏移量）
+        	//long offset = consumer.fetchConsumeOffset(mq, false);
         	PullResult pullResult = consumer.pullBlockIfNotFound(mq, "*", getMessageQueueOffset(mq), 32);
         	System.out.println(pullResult);
+        	//更新broker偏移量（broker维护偏移量）
+        	//consumer.updateConsumeOffset(mq, pullResult.getNextBeginOffset());
         	putMessageQueueOffset(mq, pullResult.getNextBeginOffset());
         	if (PullStatus.FOUND == pullResult.getPullStatus()) {
         		List<MessageExt> msgs = pullResult.getMsgFoundList();
@@ -43,6 +47,7 @@ public class Consumer {
         consumer.shutdown();
 	}
 	
+	/** 自己维护偏移量 */
 	private static long getMessageQueueOffset(MessageQueue mq) {
         Long offset = OFFSE_TABLE.get(mq);
         if (offset != null)
@@ -51,6 +56,7 @@ public class Consumer {
         return 0;
     }
 
+	/** 自己维护偏移量 */
     private static void putMessageQueueOffset(MessageQueue mq, long offset) {
         OFFSE_TABLE.put(mq, offset);
     }
