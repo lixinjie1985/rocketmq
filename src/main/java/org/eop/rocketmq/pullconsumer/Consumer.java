@@ -21,10 +21,15 @@ public class Consumer {
 	
 	public static void main(String[] args) throws Exception {
 		DefaultMQPullConsumer consumer = new DefaultMQPullConsumer("ConsumerGroup7");
+		//设置namesrv
 		consumer.setNamesrvAddr("");
+		//根据topic从消费者缓存中获取消息队列
+		Set<MessageQueue> mqs = consumer.fetchSubscribeMessageQueues("topic");
+		//根据topic获取消息队列
+		mqs = consumer.fetchMessageQueuesInBalance("topic");
+		
         consumer.start();
-        
-        Set<MessageQueue> mqs = consumer.fetchSubscribeMessageQueues("Topic7");
+        //有很多种源码，具体查看源码（阻塞的，非阻塞的，带超时的，带回调的等）
         for (MessageQueue mq : mqs) {
         	//从broker获取偏移量（broker维护偏移量）
         	//long offset = consumer.fetchConsumeOffset(mq, false);
